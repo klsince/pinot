@@ -150,11 +150,34 @@ public class RecordTransformerTest {
       assertEquals(record.getValue("mvDouble"), new Object[]{123d});
       assertEquals(record.getValue("svStringWithNullCharacters"), "1\0002\0003");
       assertEquals(record.getValue("svStringWithLengthLimit"), "123");
-      // NOTE: We identify the array type by the first element, so data type conversion only applied to 'mvString2'
-      assertEquals(record.getValue("mvString1"), new Object[]{"123", 123, 123L, 123f, 123.0});
+      // If values in MV column have different types, the source type is set to PinotDataType.OBJECT_ARRAY,
+      // thus, eventually it relies on PinotDataType.OBJECT to convert to destination type.
+      assertEquals(record.getValue("mvString1"), new Object[]{"123", "123", "123", "123.0", "123.0"});
       assertEquals(record.getValue("mvString2"), new Object[]{"123", "123", "123.0", "123.0", "123"});
       assertNull(record.getValue("$virtual"));
       assertTrue(record.getNullValueFields().isEmpty());
+    }
+  }
+
+  @Test
+  public void testDataTypeTransformerWithMixingTypesInMV() {
+    RecordTransformer transformer = new DataTypeTransformer(SCHEMA);
+    GenericRow record = getRecord();
+    record.putValue("mvInt", new Object[]{123L, 456.789f});
+    record.putValue("mvLong", new Object[]{123.456f, 789L});
+    record.putValue("mvFloat", new Object[]{123L, 456.789f});
+    record.putValue("mvDouble", new Object[]{123.0f, 789L});
+    record.putValue("mvString1", new Object[]{"123", 123L, 123f, 123.0d});
+    record.putValue("mvString2", new Object[]{123, 123L, 123f, "123.0"});
+    for (int i = 0; i < NUM_ROUNDS; i++) {
+      record = transformer.transform(record);
+      assertNotNull(record);
+      assertEquals(record.getValue("mvInt"), new Object[]{123, 456});
+      assertEquals(record.getValue("mvLong"), new Object[]{123L, 789L});
+      assertEquals(record.getValue("mvFloat"), new Object[]{123f, 456.789f});
+      assertEquals(record.getValue("mvDouble"), new Object[]{123.0d, 789.0d});
+      assertEquals(record.getValue("mvString1"), new Object[]{"123", "123", "123.0", "123.0"});
+      assertEquals(record.getValue("mvString2"), new Object[]{"123", "123", "123.0", "123.0"});
     }
   }
 

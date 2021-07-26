@@ -100,9 +100,7 @@ public class DataTypeTransformer implements RecordTransformer {
           // Multi-value column
           Object[] values = (Object[]) value;
           source = MULTI_VALUE_TYPE_MAP.get(values[0].getClass());
-          if (source == null) {
-            source = PinotDataType.OBJECT_ARRAY;
-          }
+          source = getMultiValueType(values, source);
         } else {
           // Single-value column
           source = SINGLE_VALUE_TYPE_MAP.get(value.getClass());
@@ -121,6 +119,18 @@ public class DataTypeTransformer implements RecordTransformer {
       }
     }
     return record;
+  }
+
+  @VisibleForTesting
+  static PinotDataType getMultiValueType(Object[] values, PinotDataType tentative) {
+    // Values can have different types, like when using JsonArrayPath to extract values
+    // from multiple JSONObjects nested in JSONArray. Use OBJECT_ARRAY for such case.
+    for (Object v : values) {
+      if (MULTI_VALUE_TYPE_MAP.get(v.getClass()) != tentative) {
+        return PinotDataType.OBJECT_ARRAY;
+      }
+    }
+    return tentative;
   }
 
   /**

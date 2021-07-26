@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.pinot.common.utils.PinotDataType;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -198,5 +199,26 @@ public class DataTypeTransformerTest {
       // Expected
     }
     assertEqualsNoOrder((Object[]) DataTypeTransformer.standardize(COLUMN, values, false), expectedValues);
+  }
+
+  @Test
+  public void testGetMultiValueType() {
+    // All values of Integer type.
+    Object[] values = new Object[]{100632567, 100632569, 1910737149};
+    assertEquals(DataTypeTransformer.getMultiValueType(values, PinotDataType.INTEGER_ARRAY),
+        PinotDataType.INTEGER_ARRAY);
+
+    // Mixing Integer and Long type.
+    values = new Object[]{100632567, 100632569, 2910737149L};
+    assertEquals(DataTypeTransformer.getMultiValueType(values, PinotDataType.INTEGER_ARRAY),
+        PinotDataType.OBJECT_ARRAY);
+
+    // All values of String type.
+    values = new Object[]{"100632567", "100632569", "2910737149"};
+    assertEquals(DataTypeTransformer.getMultiValueType(values, PinotDataType.STRING_ARRAY), PinotDataType.STRING_ARRAY);
+
+    // Mixing String and Numbers together.
+    values = new Object[]{2910737149L, "100632567", 100632569};
+    assertEquals(DataTypeTransformer.getMultiValueType(values, PinotDataType.LONG_ARRAY), PinotDataType.OBJECT_ARRAY);
   }
 }
