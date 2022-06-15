@@ -178,6 +178,10 @@ public class ControllerConf extends PinotConfiguration {
     public static final String SEGMENT_RELOCATOR_INITIAL_DELAY_IN_SECONDS =
         "controller.segmentRelocator.initialDelayInSeconds";
 
+    public static final String SEGMENT_TIER_CHECKER_FREQUENCY_PERIOD = "controller.segmentTierChecker.frequencyPeriod";
+    public static final String SEGMENT_TIER_CHECKER_INITIAL_DELAY_IN_SECONDS =
+        "controller.segmentTierChecker.initialDelayInSeconds";
+
     // The flag to indicate if controller periodic job will fix the missing LLC segment deep store copy.
     // Default value is false.
     public static final String ENABLE_DEEP_STORE_RETRY_UPLOAD_LLC_SEGMENT =
@@ -207,6 +211,7 @@ public class ControllerConf extends PinotConfiguration {
 
     private static final int DEFAULT_SEGMENT_LEVEL_VALIDATION_INTERVAL_IN_SECONDS = 24 * 60 * 60;
     private static final int DEFAULT_SEGMENT_RELOCATOR_FREQUENCY_IN_SECONDS = 60 * 60;
+    private static final int DEFAULT_SEGMENT_TIER_CHECKER_FREQUENCY_IN_SECONDS = 60 * 60;
   }
 
   private static final String SERVER_ADMIN_REQUEST_TIMEOUT_SECONDS = "server.request.timeoutSeconds";
@@ -602,7 +607,7 @@ public class ControllerConf extends PinotConfiguration {
 
   /**
    * RealtimeSegmentRelocator has been rebranded to SegmentRelocator. Returns
-   * <code>controller.segment.relocator.frequencyInSeconds</code> or <code>controller.segment.relocator
+   * <code>controller.segment.relocator.frequencyPeriod</code> or <code>controller.segment.relocator
    * .frequencyInSeconds</code>
    * or REALTIME_SEGMENT_RELOCATOR_FREQUENCY, in the order of decreasing perference (left ->
    * right).
@@ -736,7 +741,6 @@ public class ControllerConf extends PinotConfiguration {
     return getProperty(ACCESS_CONTROL_FACTORY_CLASS, DEFAULT_ACCESS_CONTROL_FACTORY_CLASS);
   }
 
-
   public void setAccessControlFactoryClass(String accessControlFactoryClass) {
     setProperty(ACCESS_CONTROL_FACTORY_CLASS, accessControlFactoryClass);
   }
@@ -818,6 +822,17 @@ public class ControllerConf extends PinotConfiguration {
               ControllerPeriodicTasksConf.getRandomInitialDelayInSeconds());
     }
     return segmentRelocatorInitialDelaySeconds;
+  }
+
+  public int getSegmentTierCheckerFrequencyInSeconds() {
+    return Optional.ofNullable(getProperty(ControllerPeriodicTasksConf.SEGMENT_TIER_CHECKER_FREQUENCY_PERIOD))
+        .map(period -> (int) convertPeriodToSeconds(period))
+        .orElse(ControllerPeriodicTasksConf.DEFAULT_SEGMENT_TIER_CHECKER_FREQUENCY_IN_SECONDS);
+  }
+
+  public long getSegmentTierCheckerInitialDelayInSeconds() {
+    return getProperty(ControllerPeriodicTasksConf.SEGMENT_TIER_CHECKER_INITIAL_DELAY_IN_SECONDS,
+        ControllerPeriodicTasksConf.getRandomInitialDelayInSeconds());
   }
 
   public long getPeriodicTaskInitialDelayInSeconds() {
