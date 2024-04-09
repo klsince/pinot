@@ -41,7 +41,7 @@
     <grpc-context.version>1.60.1</grpc-context.version>
     <grpc-protobuf-lite.version>1.62.2</grpc-protobuf-lite.version>
     <caffeine.version>2.6.2</caffeine.version>
-    <codehaus-annotations.version>1.17</codehaus-annotations.version>
+    <codehaus-annotations.version>1.23</codehaus-annotations.version>
   </properties>
 
   <dependencies>
