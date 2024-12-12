@@ -154,10 +154,18 @@ public class MultiStageEngineIntegrationTest extends BaseClusterIntegrationTestS
     super.testHardcodedQueries();
   }
 
-  @Test
-  public void testSingleValueQuery()
+  @DataProvider(name = "enablePrefetch")
+  public Object[][] enablePrefetch() {
+    return new Object[][]{
+        {false}, {true}
+    };
+  }
+
+  @Test(dataProvider = "enablePrefetch")
+  public void testSingleValueQuery(boolean enablePrefetch)
       throws Exception {
-    String query = "select sum(ActualElapsedTime) from mytable WHERE ActualElapsedTime > "
+    String query = "set \"enable.prefetch\"=" + enablePrefetch
+        + "; select sum(ActualElapsedTime) from mytable WHERE ActualElapsedTime > "
         + "(select avg(ActualElapsedTime) as avg_profit from mytable)";
     JsonNode jsonNode = postQuery(query);
     long joinResult = jsonNode.get("resultTable").get("rows").get(0).get(0).asLong();
@@ -166,7 +174,7 @@ public class MultiStageEngineIntegrationTest extends BaseClusterIntegrationTestS
     query = "select sum(ActualElapsedTime) as profit from mytable WHERE ActualElapsedTime > -1412.435033969449";
     jsonNode = postQuery(query);
     long expectedResult = jsonNode.get("resultTable").get("rows").get(0).get(0).asLong();
-    assertEquals(joinResult, expectedResult);
+    assertEquals(joinResult, expectedResult, "With enablePrefetch: " + enablePrefetch);
   }
 
   @Test

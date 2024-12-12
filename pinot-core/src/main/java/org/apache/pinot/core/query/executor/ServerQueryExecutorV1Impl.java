@@ -180,7 +180,12 @@ public class ServerQueryExecutorV1Impl implements QueryExecutor {
     long queryEndTimeMs = timerContext.getQueryArrivalTimeMs() + queryTimeoutMs;
     queryContext.setEndTimeMs(queryEndTimeMs);
 
-    queryContext.setEnablePrefetch(_enablePrefetch);
+    String flag = queryContext.getQueryOptions().get(ENABLE_PREFETCH);
+    if (flag != null) {
+      queryContext.setEnablePrefetch(Boolean.parseBoolean(flag));
+    } else {
+      queryContext.setEnablePrefetch(_enablePrefetch);
+    }
 
     // Query scheduler wait time already exceeds query timeout, directly return
     long querySchedulingTimeMs = System.currentTimeMillis() - queryArrivalTimeMs;
